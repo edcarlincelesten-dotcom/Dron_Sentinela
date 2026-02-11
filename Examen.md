@@ -2,9 +2,9 @@
 
 **Valor:** 20 puntos  
 
-**Fecha de entrega:** 06/11/2025  
+**Fecha de entrega:** 09/03/2026  
 
-**Fecha de presentación:** 06/11/2025 y 08/11/2025 
+**Fecha de presentación:** (12/13)/03/2026 y 14/03/2026
 
 ---
 
@@ -100,5 +100,5 @@ Más lo que ya incluía el repositorio original.
 
 ---
 
-**El proyecto debe subirse a la carpeta de _Examen Parcial_ hasta el 03/11/2025.**  
+**El proyecto debe subirse a la carpeta de _Examen Parcial_ hasta el 09/03/2026 .**  
 **Pasada esa fecha no se recibirán proyectos.**
