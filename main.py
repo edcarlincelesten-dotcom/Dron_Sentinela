@@ -1,3 +1,9 @@
+# =========================================================
+# NOMBRE: Edcarlin Angeuris Celesten Benitez
+# MATRÍCULA: 24-EISN-2-017
+# PROYECTO: Dron Sentinela - Motor Principal
+# =========================================================
+
 import pygame
 import sys
 
@@ -15,6 +21,25 @@ BLANCO = (255, 255, 255)
 AZUL = (0, 150, 255)
 VERDE = (0, 255, 100)
 
+# Configuracion dekl mapa 
+TAMANO_CELDA = 40  # Tamaño de cada cuadrito
+GRIS_OSCURO = (40, 40, 40) # Color para las líneas
+AMARILLO_CRISTAL = (255, 223, 0) # Color de los cristales
+
+def dibujar_cuadricula(superficie):
+
+    """
+    Dibuja una red de líneas (nodos) sobre el mapa para facilitar 
+    la navegación del algoritmo de IA A*.
+    """
+    ancho_ventana, alto_ventana = superficie.get_size()
+    # Dibuja líneas verticales
+    for x in range(0, ancho_ventana, TAMANO_CELDA):
+        pygame.draw.line(superficie, GRIS_OSCURO, (x, 0), (x, alto_ventana))
+    # Dibuja líneas horizontales
+    for y in range(0, alto_ventana, TAMANO_CELDA):
+        pygame.draw.line(superficie, GRIS_OSCURO, (0, y), (ancho_ventana, y))
+                    
 # Configuración pantalla
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Dron Sentinela - Controles")
@@ -49,8 +74,10 @@ class Dron:
             self.x += vel
         
         # Limitar a la pantalla
-        self.x = max(0, min(SCREEN_WIDTH - self.radio * 2, self.x))
-        self.y = max(0, min(SCREEN_HEIGHT - self.radio * 2, self.y))
+        ancho_ventana, alto_ventana = pygame.display.get_surface().get_size()
+        self.x = max(self.radio, min(ancho_ventana - self.radio, self.x))
+        self.y = max(self.radio, min(alto_ventana - self.radio, self.y))
+        
     def activar_boost(self):
         tiempo_actual = pygame.time.get_ticks()
         
@@ -88,6 +115,13 @@ class Dron:
 # Crear dron en el centro
 dron = Dron(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 
+# Lista de posiciones para los cristales [Columna, Fila]
+# Multiplicamos por TAMANO_CELDA para que queden centrados en la rejilla
+cristales = [
+    [5 * TAMANO_CELDA + 10, 5 * TAMANO_CELDA + 10],
+    [15 * TAMANO_CELDA + 10, 3 * TAMANO_CELDA + 10],
+    [10 * TAMANO_CELDA + 10, 12 * TAMANO_CELDA + 10]
+]
 # Bucle principal
 ejecutando = True
 
@@ -113,9 +147,23 @@ while ejecutando:
     dron.actualizar_boost()
     
     # Dibujar
+    # --- SECCIÓN DE RENDERIZADO (DIBUJO) ---
+    # Limpiar la pantalla con el color de fondo
     screen.fill(NEGRO)
-    dron.dibujar(screen)
     
+    # Dibujar la cuadrícula de fondo para el sistema de coordenadas de la IA
+    dibujar_cuadricula(screen)
+    
+
+    # Dibujar los cristales (Objetivos a proteger)
+    for c in cristales:
+        pygame.draw.rect(screen, AMARILLO_CRISTAL, (c[0], c[1], 20, 20))
+
+
+    # Dibujar al jugador (Dron) sobre el mapa
+    dron.dibujar(screen)
+
+
     # Mostrar instrucciones
     font = pygame.font.SysFont("arial", 20)
     instrucciones = [
