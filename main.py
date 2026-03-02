@@ -6,7 +6,7 @@
 
 import pygame
 import sys
-
+from scripts.enemigo import Saqueador
 # Inicializar Pygame
 pygame.init()
 
@@ -115,6 +115,9 @@ class Dron:
 # Crear dron en el centro
 dron = Dron(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 
+# --- AQUÍ NACE EL ENEMIGO ---
+enemigo = Saqueador(50, 50, TAMANO_CELDA)
+
 # Lista de posiciones para los cristales [Columna, Fila]
 # Multiplicamos por TAMANO_CELDA para que queden centrados en la rejilla
 cristales = [
@@ -145,7 +148,12 @@ while ejecutando:
     teclas = pygame.key.get_pressed()
     dron.mover(teclas)
     dron.actualizar_boost()
-    
+
+    # --- LÓGICA DEL ENEMIGO ---
+    enemigo.pensar(cristales)  # Decide a qué cristal ir
+    enemigo.mover()            # Se mueve
+    enemigo.verificar_colision(cristales)
+
     # Dibujar
     # --- SECCIÓN DE RENDERIZADO (DIBUJO) ---
     # Limpiar la pantalla con el color de fondo
@@ -154,11 +162,12 @@ while ejecutando:
     # Dibujar la cuadrícula de fondo para el sistema de coordenadas de la IA
     dibujar_cuadricula(screen)
     
-
     # Dibujar los cristales (Objetivos a proteger)
     for c in cristales:
         pygame.draw.rect(screen, AMARILLO_CRISTAL, (c[0], c[1], 20, 20))
 
+        # --- DIBUJAR AL ENEMIGO ---
+    enemigo.dibujar(screen)
 
     # Dibujar al jugador (Dron) sobre el mapa
     dron.dibujar(screen)
