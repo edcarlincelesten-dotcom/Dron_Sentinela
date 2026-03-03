@@ -26,6 +26,15 @@ TAMANO_CELDA = 40  # Tamaño de cada cuadrito
 GRIS_OSCURO = (40, 40, 40) # Color para las líneas
 AMARILLO_CRISTAL = (255, 223, 0) # Color de los cristales
 
+# 0 es pasillo, 1 es muro
+MAPA = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+]
+
 def dibujar_cuadricula(superficie):
 
     """
@@ -39,11 +48,26 @@ def dibujar_cuadricula(superficie):
     # Dibuja líneas horizontales
     for y in range(0, alto_ventana, TAMANO_CELDA):
         pygame.draw.line(superficie, GRIS_OSCURO, (0, y), (ancho_ventana, y))
-                    
+
 # Configuración pantalla
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Dron Sentinela - Controles")
 clock = pygame.time.Clock()
+
+def dibujar_mundo(superficie):
+    for fila_index, fila in enumerate(MAPA):
+        for col_index, celda in enumerate(fila):
+            x = col_index * TAMANO_CELDA
+            y = fila_index * TAMANO_CELDA
+            
+            if celda == 1:
+                # Dibuja los Muros (Gris Acero)
+                pygame.draw.rect(superficie, (60, 60, 70), (x, y, TAMANO_CELDA, TAMANO_CELDA))
+                # Borde oscuro para el bloque
+                pygame.draw.rect(superficie, (30, 30, 40), (x, y, TAMANO_CELDA, TAMANO_CELDA), 2)
+            else:
+                # Dibuja el Suelo (Azul muy oscuro)
+                pygame.draw.rect(superficie, (20, 20, 25), (x, y, TAMANO_CELDA, TAMANO_CELDA))
 
 # Clase del Dron
 class Dron:
@@ -158,6 +182,8 @@ while ejecutando:
     # --- SECCIÓN DE RENDERIZADO (DIBUJO) ---
     # Limpiar la pantalla con el color de fondo
     screen.fill(NEGRO)
+
+    dibujar_mundo(screen)
     
     # Dibujar la cuadrícula de fondo para el sistema de coordenadas de la IA
     dibujar_cuadricula(screen)
