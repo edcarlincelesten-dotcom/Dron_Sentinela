@@ -21,18 +21,21 @@ BLANCO = (255, 255, 255)
 AZUL = (0, 150, 255)
 VERDE = (0, 255, 100)
 
-# Configuracion dekl mapa 
-TAMANO_CELDA = 40  # Tamaño de cada cuadrito
-GRIS_OSCURO = (40, 40, 40) # Color para las líneas
-AMARILLO_CRISTAL = (255, 223, 0) # Color de los cristales
 
-# 0 es pasillo, 1 es muro
+# --- MAPA EXPANDIDO ---
+# 1 = Muro robusto, 0 = Pasillo transitable
 MAPA = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
 
 def dibujar_cuadricula(superficie):
@@ -54,21 +57,41 @@ screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Dron Sentinela - Controles")
 clock = pygame.time.Clock()
 
+# Configuracion dekl mapa 
+ancho_v, alto_v = screen.get_size()
+
+TAMANO_CELDA = ancho_v // 24  # Dividimos entre 24 para que sobre un poco de espacio
+GRIS_OSCURO = (40, 40, 40)
+AMARILLO_CRISTAL = (255, 223, 0)
+
+ancho_v, alto_v = screen.get_size()
+ancho_mapa = 25 * TAMANO_CELDA  # 25 columnas
+alto_mapa = 11 * TAMANO_CELDA   # 11 filas
+off_x = (ancho_v - ancho_mapa) // 2
+off_y = (alto_v - alto_mapa) // 2
+
+
 def dibujar_mundo(superficie):
+    """ 
+    Esta función la mejoré para que calcule el tamaño de mi monitor
+    y centre el laboratorio automáticamente.
+    """
     for fila_index, fila in enumerate(MAPA):
         for col_index, celda in enumerate(fila):
-            x = col_index * TAMANO_CELDA
-            y = fila_index * TAMANO_CELDA
+            # Le sumamos el off a la posición X e Y
+            x = col_index * TAMANO_CELDA + off_x
+            y = fila_index * TAMANO_CELDA + off_y
             
             if celda == 1:
-                # Dibuja los Muros (Gris Acero)
-                pygame.draw.rect(superficie, (60, 60, 70), (x, y, TAMANO_CELDA, TAMANO_CELDA))
-                # Borde oscuro para el bloque
-                pygame.draw.rect(superficie, (30, 30, 40), (x, y, TAMANO_CELDA, TAMANO_CELDA), 2)
+                # Muros con color acero industrial
+                pygame.draw.rect(superficie, (45, 45, 55), (x, y, TAMANO_CELDA, TAMANO_CELDA))
+                # Borde para que se vea el relieve del bloque
+                pygame.draw.rect(superficie, (20, 20, 25), (x, y, TAMANO_CELDA, TAMANO_CELDA), 2)
             else:
-                # Dibuja el Suelo (Azul muy oscuro)
+                # Suelo del laboratorio
                 pygame.draw.rect(superficie, (20, 20, 25), (x, y, TAMANO_CELDA, TAMANO_CELDA))
-
+    
+   
 # Clase del Dron
 class Dron:
     def __init__(self, x, y):
@@ -85,6 +108,7 @@ class Dron:
     
     def mover(self, teclas):
         # Determinar velocidad actual
+        global off_x, off_y, ancho_mapa, alto_mapa
         vel = self.velocidad_boost if self.boost_activo else self.velocidad
         
         # Movimiento WASD
@@ -137,17 +161,17 @@ class Dron:
         )
 
 # Crear dron en el centro
-dron = Dron(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+dron = Dron(off_x + TAMANO_CELDA + 30, off_y + TAMANO_CELDA + 30)
 
 # --- AQUÍ NACE EL ENEMIGO ---
-enemigo = Saqueador(50, 50, TAMANO_CELDA)
+enemigo = Saqueador(off_x + (23 * TAMANO_CELDA), off_y + (9 * TAMANO_CELDA), TAMANO_CELDA)
 
 # Lista de posiciones para los cristales [Columna, Fila]
 # Multiplicamos por TAMANO_CELDA para que queden centrados en la rejilla
 cristales = [
-    [5 * TAMANO_CELDA + 10, 5 * TAMANO_CELDA + 10],
-    [15 * TAMANO_CELDA + 10, 3 * TAMANO_CELDA + 10],
-    [10 * TAMANO_CELDA + 10, 12 * TAMANO_CELDA + 10]
+    [off_x + (5 * TAMANO_CELDA) + 15, off_y + (5 * TAMANO_CELDA) + 15],
+    [off_x + (15 * TAMANO_CELDA) + 15, off_y + (3 * TAMANO_CELDA) + 15],
+    [off_x + (10 * TAMANO_CELDA) + 15, off_y + (9 * TAMANO_CELDA) + 15]
 ]
 # Bucle principal
 ejecutando = True
