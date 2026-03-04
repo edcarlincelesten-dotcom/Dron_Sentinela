@@ -22,21 +22,24 @@ AZUL = (0, 150, 255)
 VERDE = (0, 255, 100)
 
 
-# --- MAPA EXPANDIDO ---
-# 1 = Muro robusto, 0 = Pasillo transitable
-MAPA = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-]
+import random
+
+def generar_mundo(filas, columnas):
+    # Creamos un mapa lleno de pasillos (0)
+    mapa = [[0 for _ in range(columnas)] for _ in range(filas)]
+    
+    # Ponemos muros (1) con un 20% de probabilidad
+    for i in range(filas):
+        for j in range(columnas):
+            # Dejamos las esquinas libres para el Dron y el Enemigo
+            if (i < 2 and j < 2) or (i > filas-3 and j > columnas-3):
+                continue
+            if random.random() < 0.2: # 20% de muros
+                mapa[i][j] = 1
+    return mapa
+
+# Generamos un mapa de 11 filas x 25 columnas para que llene tu pantalla
+MAPA = generar_mundo(11, 25)
 
 def dibujar_cuadricula(superficie):
 
@@ -161,10 +164,9 @@ class Dron:
         )
 
 # Crear dron en el centro
-dron = Dron(off_x + TAMANO_CELDA + 30, off_y + TAMANO_CELDA + 30)
-
+dron = Dron(off_x + TAMANO_CELDA * 0.5, off_y + TAMANO_CELDA * 0.5)
 # --- AQUÍ NACE EL ENEMIGO ---
-enemigo = Saqueador(off_x + (23 * TAMANO_CELDA), off_y + (9 * TAMANO_CELDA), TAMANO_CELDA)
+enemigo = Saqueador(off_x + (24 * TAMANO_CELDA), off_y + (10 * TAMANO_CELDA), TAMANO_CELDA)
 
 # Lista de posiciones para los cristales [Columna, Fila]
 # Multiplicamos por TAMANO_CELDA para que queden centrados en la rejilla
