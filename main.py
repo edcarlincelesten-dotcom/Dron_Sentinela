@@ -24,22 +24,20 @@ VERDE = (0, 255, 100)
 
 import random
 
-def generar_mundo(filas, columnas):
-    # Creamos un mapa lleno de pasillos (0)
-    mapa = [[0 for _ in range(columnas)] for _ in range(filas)]
-    
-    # Ponemos muros (1) con un 20% de probabilidad
-    for i in range(filas):
-        for j in range(columnas):
-            # Dejamos las esquinas libres para el Dron y el Enemigo
-            if (i < 2 and j < 2) or (i > filas-3 and j > columnas-3):
-                continue
-            if random.random() < 0.2: # 20% de muros
-                mapa[i][j] = 1
-    return mapa
-
-# Generamos un mapa de 11 filas x 25 columnas para que llene tu pantalla
-MAPA = generar_mundo(11, 25)
+# 1 = Muro/Obstáculo, 0 = Pasillo Libre
+MAPA = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1],
+    [1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1],
+    [1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+]
 
 def dibujar_cuadricula(superficie):
 
@@ -63,37 +61,41 @@ clock = pygame.time.Clock()
 # Configuracion dekl mapa 
 ancho_v, alto_v = screen.get_size()
 
-TAMANO_CELDA = ancho_v // 24  # Dividimos entre 24 para que sobre un poco de espacio
+TAMANO_CELDA = ancho_v // 25  # Dividimos entre 24 para que sobre un poco de espacio
 GRIS_OSCURO = (40, 40, 40)
 AMARILLO_CRISTAL = (255, 223, 0)
 
 ancho_v, alto_v = screen.get_size()
-ancho_mapa = 25 * TAMANO_CELDA  # 25 columnas
-alto_mapa = 11 * TAMANO_CELDA   # 11 filas
-off_x = (ancho_v - ancho_mapa) // 2
-off_y = (alto_v - alto_mapa) // 2
-
+ANCHO_C = ancho_v / 25
+ALTO_C = alto_v / 11
+off_x = 0
+off_y = 0
 
 def dibujar_mundo(superficie):
-    """ 
-    Esta función la mejoré para que calcule el tamaño de mi monitor
-    y centre el laboratorio automáticamente.
-    """
-    for fila_index, fila in enumerate(MAPA):
-        for col_index, celda in enumerate(fila):
-            # Le sumamos el off a la posición X e Y
-            x = col_index * TAMANO_CELDA + off_x
-            y = fila_index * TAMANO_CELDA + off_y
-            
+
+    # Pintamos el fondo de un solo golpe (Suelo futurista)
+
+    superficie.fill((10, 10, 15)) 
+
+
+
+    for r, fila in enumerate(MAPA):
+
+        for c, celda in enumerate(fila):
+
             if celda == 1:
-                # Muros con color acero industrial
-                pygame.draw.rect(superficie, (45, 45, 55), (x, y, TAMANO_CELDA, TAMANO_CELDA))
-                # Borde para que se vea el relieve del bloque
-                pygame.draw.rect(superficie, (20, 20, 25), (x, y, TAMANO_CELDA, TAMANO_CELDA), 2)
-            else:
-                # Suelo del laboratorio
-                pygame.draw.rect(superficie, (20, 20, 25), (x, y, TAMANO_CELDA, TAMANO_CELDA))
-    
+
+                # Dibujamos los muros estirados
+
+                # El +1 es para que no queden rayas milimétricas entre bloques
+
+                rect = (c * ANCHO_C, r * ALTO_C, ANCHO_C + 1, ALTO_C + 1)
+
+                pygame.draw.rect(superficie, (30, 30, 40), rect)
+
+                
+
+                pygame.draw.rect(superficie, (0, 255, 255), rect, 1)    
    
 # Clase del Dron
 class Dron:
