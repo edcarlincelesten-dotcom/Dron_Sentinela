@@ -39,20 +39,6 @@ MAPA = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
-def dibujar_cuadricula(superficie):
-
-    """
-    Dibuja una red de líneas (nodos) sobre el mapa para facilitar 
-    la navegación del algoritmo de IA A*.
-    """
-    ancho_ventana, alto_ventana = superficie.get_size()
-    # Dibuja líneas verticales
-    for x in range(0, ancho_ventana, TAMANO_CELDA):
-        pygame.draw.line(superficie, GRIS_OSCURO, (x, 0), (x, alto_ventana))
-    # Dibuja líneas horizontales
-    for y in range(0, alto_ventana, TAMANO_CELDA):
-        pygame.draw.line(superficie, GRIS_OSCURO, (0, y), (ancho_ventana, y))
-
 # Configuración pantalla
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Dron Sentinela - Controles")
@@ -213,8 +199,6 @@ while ejecutando:
 
     dibujar_mundo(screen)
     
-    # Dibujar la cuadrícula de fondo para el sistema de coordenadas de la IA
-    dibujar_cuadricula(screen)
     
     # Dibujar los cristales (Objetivos a proteger)
     for c in cristales:
