@@ -164,7 +164,8 @@ class Dron:
         )
 
 # Crear dron en el centro
-dron = Dron(off_x + TAMANO_CELDA_FIJO * 0.5, off_y + TAMANO_CELDA_FIJO * 0.5)
+dron = Dron(ANCHO_C * 1.5, ALTO_C * 1.5)
+
 # --- AQUÍ NACEN LOS ENEMIGOS ---
 enemigos = []
 # Ponemos a los 3 enemigos en esquinas o puntos lejanos
