@@ -20,23 +20,33 @@ NEGRO = (0, 0, 0)
 BLANCO = (255, 255, 255)
 AZUL = (0, 150, 255)
 VERDE = (0, 255, 100)
+AMARILLO_CRISTAL = (255, 223, 0)
 
 
 import random
 
 # 1 = Muro/Obstáculo, 0 = Pasillo Libre
 MAPA = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1],
-    [1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1],
-    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1],
-    [1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+    [1,0,0,1,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,1,1,1,1,0,0,1],
+    [1,0,0,1,0,0,1,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0,1],
+    [1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1],
+    [1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,1],
+    [1,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,1,1,1,1,1,1,1,1,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,1],
+    [1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,1],
+    [1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,1],
+    [1,0,0,1,0,0,1,0,0,1,1,0,0,0,1,1,1,0,0,1,1,0,0,1,1,1,0,0,0,1,1,0,0,0,1,0,0,1,0,0,1],
+    [1,0,0,1,1,1,1,0,0,1,1,0,0,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,0,1,1,0,0,0,1,1,1,1,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ]
 
 # Configuración pantalla
@@ -45,17 +55,19 @@ pygame.display.set_caption("Dron Sentinela - Controles")
 clock = pygame.time.Clock()
 
 # Configuracion dekl mapa 
+TAMANO_CELDA_FIJO = 25  # Antes dependía de la pantalla, ahora es manual
+ANCHO_C = TAMANO_CELDA_FIJO
+ALTO_C = TAMANO_CELDA_FIJO
+
+# Para centrar el mapa en la pantalla de 800x600
+# El mapa tiene 25 columnas y 11 filas
 ancho_v, alto_v = screen.get_size()
 
-TAMANO_CELDA = ancho_v // 25  # Dividimos entre 24 para que sobre un poco de espacio
-GRIS_OSCURO = (40, 40, 40)
-AMARILLO_CRISTAL = (255, 223, 0)
+ANCHO_C = ancho_v / 40
+ALTO_C = alto_v / 20
 
-ancho_v, alto_v = screen.get_size()
-ANCHO_C = ancho_v / 25
-ALTO_C = alto_v / 11
-off_x = 0
-off_y = 0
+off_x = (800 - ancho_v) // 2
+off_y = (600 - alto_v) // 2
 
 def dibujar_mundo(superficie):
 
@@ -152,17 +164,34 @@ class Dron:
         )
 
 # Crear dron en el centro
-dron = Dron(off_x + TAMANO_CELDA * 0.5, off_y + TAMANO_CELDA * 0.5)
-# --- AQUÍ NACE EL ENEMIGO ---
-enemigo = Saqueador(off_x + (24 * TAMANO_CELDA), off_y + (10 * TAMANO_CELDA), TAMANO_CELDA)
+dron = Dron(off_x + TAMANO_CELDA_FIJO * 0.5, off_y + TAMANO_CELDA_FIJO * 0.5)
+# --- AQUÍ NACEN LOS ENEMIGOS ---
+enemigos = []
+# Ponemos a los 3 enemigos en esquinas o puntos lejanos
+posiciones_e = [(2, 1), (22, 1), (12, 9)]
+for col, fila in posiciones_e:
+    # Ajustamos la posición al centro de la celda
+    ex = (col * ANCHO_C) + (ANCHO_C // 2)
+    ey = (fila * ALTO_C) + (ALTO_C // 2)
+    enemigos.append(Saqueador(ex, ey, TAMANO_CELDA_FIJO))
 
 # Lista de posiciones para los cristales [Columna, Fila]
 # Multiplicamos por TAMANO_CELDA para que queden centrados en la rejilla
-cristales = [
-    [off_x + (5 * TAMANO_CELDA) + 15, off_y + (5 * TAMANO_CELDA) + 15],
-    [off_x + (15 * TAMANO_CELDA) + 15, off_y + (3 * TAMANO_CELDA) + 15],
-    [off_x + (10 * TAMANO_CELDA) + 15, off_y + (9 * TAMANO_CELDA) + 15]
+# --- Configuracion de  cristales ---
+lista_cristales = []
+# Lista de coordenadas (Columna, Fila) donde aparecerán
+pos_c = [
+    (4, 1), (20, 1),   
+    (12, 3),           
+    (2, 5), (22, 5),   
+    (10, 9), (14, 9),  
+    (7, 4)             
 ]
+for col, fila in pos_c:
+    cx = col * ANCHO_C
+    cy = fila * ALTO_C
+    lista_cristales.append([cx, cy])
+
 # Bucle principal
 ejecutando = True
 
@@ -188,9 +217,11 @@ while ejecutando:
     dron.actualizar_boost()
 
     # --- LÓGICA DEL ENEMIGO ---
-    enemigo.pensar(cristales)  # Decide a qué cristal ir
-    enemigo.mover()            # Se mueve
-    enemigo.verificar_colision(cristales)
+    for e in enemigos:
+        e.pensar(dron.x, dron.y, MAPA, lista_cristales)     # Cada enemigo decide su objetivo
+        e.mover(MAPA)                          # Cada enemigo avanza
+        e.verificar_colision(lista_cristales)    # Cada enemigo intenta robar
+        
 
     # Dibujar
     # --- SECCIÓN DE RENDERIZADO (DIBUJO) ---
@@ -201,11 +232,12 @@ while ejecutando:
     
     
     # Dibujar los cristales (Objetivos a proteger)
-    for c in cristales:
+    for c in lista_cristales:
         pygame.draw.rect(screen, AMARILLO_CRISTAL, (c[0], c[1], 20, 20))
 
         # --- DIBUJAR AL ENEMIGO ---
-    enemigo.dibujar(screen)
+    for e in enemigos:
+        e.dibujar(screen)
 
     # Dibujar al jugador (Dron) sobre el mapa
     dron.dibujar(screen)
