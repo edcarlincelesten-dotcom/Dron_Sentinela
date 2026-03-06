@@ -108,36 +108,59 @@ class Dron:
         self.boost_cooldown = 0
         self.boost_duracion = 1000  # 1 segundo en ms
         self.boost_espera = 3000    # 3 segundos en ms
-    
+
+    def colision(self, nueva_x, nueva_y, mapa):
+        # Convertimos las coordenadas a la celda correspondiente
+         col = int(nueva_x // ANCHO_C)
+         fila = int(nueva_y // ALTO_C)
+ 
+         # Verificamos si estamos dentro de los límites del mapa
+         
+         if 0 <= fila < len(mapa) and 0 <= col < len(mapa[0]):
+            # Si la celda es un muro, return True
+            return mapa[fila][col] == 1
+         return True  # fuera de límites
+         
     def mover(self, teclas):
         # Determinar velocidad actual
-        global off_x, off_y, ancho_mapa, alto_mapa
         vel = self.velocidad_boost if self.boost_activo else self.velocidad
-        
-        # Movimiento WASD
+
+        # Calculamos la nueva posición propuesta
+        nueva_x = self.x
+        nueva_y = self.y
+
+        # Movimiento WASD - solo calculamos, no aplicamos aún
         if teclas[pygame.K_w]:
-            self.y -= vel
+            nueva_y -= vel
         if teclas[pygame.K_s]:
-            self.y += vel
+            nueva_y += vel
         if teclas[pygame.K_a]:
-            self.x -= vel
+            nueva_x -= vel
         if teclas[pygame.K_d]:
-            self.x += vel
+            nueva_x += vel
+    
+        # Verificar colisión en X por separado
+        if not self.colision(nueva_x, self.y, MAPA):
+            self.x = nueva_x
         
+        # Verificar colisión en Y por separado  
+        if not self.colision(self.x, nueva_y, MAPA):
+            self.y = nueva_y
+    
         # Limitar a la pantalla
         ancho_ventana, alto_ventana = pygame.display.get_surface().get_size()
         self.x = max(self.radio, min(ancho_ventana - self.radio, self.x))
         self.y = max(self.radio, min(alto_ventana - self.radio, self.y))
-        
+
     def activar_boost(self):
-        tiempo_actual = pygame.time.get_ticks()
-        
-        # Solo activar si no está en cooldown
-        if not self.boost_activo and tiempo_actual >= self.boost_cooldown:
-            self.boost_activo = True
-            self.boost_tiempo = tiempo_actual + self.boost_duracion
-            self.boost_cooldown = tiempo_actual + self.boost_duracion + self.boost_espera
-    
+             tiempo_actual = pygame.time.get_ticks()
+                
+                # Solo activar si no está en cooldown
+             if not self.boost_activo and tiempo_actual >= self.boost_cooldown:
+                    self.boost_activo = True
+                    self.boost_tiempo = tiempo_actual + self.boost_duracion
+                    self.boost_cooldown = tiempo_actual + self.boost_duracion + self.boost_espera
+            
     def actualizar_boost(self):
         tiempo_actual = pygame.time.get_ticks()
         
@@ -177,7 +200,7 @@ for col, fila in posiciones_e:
     enemigos.append(Saqueador(ex, ey, TAMANO_CELDA_FIJO))
 
 # Lista de posiciones para los cristales [Columna, Fila]
-# Multiplicamos por TAMANO_CELDA para que queden centrados en la rejilla
+
 # --- Configuracion de  cristales ---
 lista_cristales = []
 # Lista de coordenadas (Columna, Fila) donde aparecerán
