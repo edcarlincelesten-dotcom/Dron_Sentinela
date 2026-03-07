@@ -1,88 +1,209 @@
 # =========================================================
 # NOMBRE: Edcarlin Angeuris Celesten Benitez
 # MATRÍCULA: 24-EISN-2-017
-# PROYECTO: Dron Sentinela - Clase Saqueador (IA)
+# PROYECTO: Dron Sentinela - Clase Saqueador con IA Completa
 # =========================================================
 
 import pygame
+import math
+import random
+from scripts.astar import AStar
+from scripts.comportamiento import *
 
 class Saqueador:
-    def __init__(self, x, y, tamano_celda):
+    def __init__(self, x, y, tamano_celda, ancho_mapa=40, alto_mapa=20):
         """
-        Inicializa al enemigo encargado de robar cristales.
+        Inicializa al enemigo con IA completa
         """
         self.x = x
         self.y = y
         self.tamano_celda = tamano_celda
-        self.velocidad = 2  # Más lento que el dron
-        self.color = (220, 20, 60)  # Rojo Carmesí
+        self.ancho_mapa = ancho_mapa
+        self.alto_mapa = alto_mapa
+        
+        # Estadísticas
+        self.salud = 100
+        self.velocidad = 2
         self.radio = 15
+        self.cristal_cargado = False
+        
+        # Referencia a A* (se inicializa después con el mapa)
+        self.astar = None
+        
+        # Estado y camino
+        self.estado = "patrullando"
+        self.camino_actual = []
         self.objetivo_actual = None
-
-    def dibujar(self, superficie):
-        """
-        Dibuja el cuerpo del saqueador y su ojo robótico.
-        """
-        pygame.draw.circle(superficie, self.color, (int(self.x), int(self.y)), self.radio)
-        pygame.draw.circle(superficie, (255, 255, 255), (int(self.x), int(self.y)), 5)
-
-    def pensar(self, obj_x, obj_y, mapa_datos, lista_cristales):
-        # Si hay cristales, fijar el primero como objetivo
-        if lista_cristales:
-            self.objetivo_actual = lista_cristales[0]
-        else:
-            self.objetivo_actual = None # Si no hay cristales, se queda quieto
-
-
-
+        
+        # Colores
+        self.color_patrulla = (220, 20, 60)    # Rojo Carmesí
+        self.color_huida = (100, 100, 255)      # Azul
+        self.color_combate = (255, 100, 0)      # Naranja
+        self.color_robo = (255, 255, 0)         # Amarillo
+        self.color_escape = (0, 255, 0)         # Verde
+        self.color_actual = self.color_patrulla
+        
+        # Construir árbol de comportamiento
+        self.arbol = self.construir_arbol()
+    
+    def construir_arbol(self):
+        """Construye el árbol de comportamiento"""
+        # PRIORIDAD ALTA: Huir si vida baja
+        huir_alta = Secuencia("HuirAlta", [
+            CondicionVidaBaja(20),
+            Selector("EstrategiaHuida", [
+                AccionHuir(),
+                AccionCombatir()
+            ])
+        ])
+        
+        # PRIORIDAD MEDIA: Combatir si acorralado
+        combatir_media = Secuencia("CombatirMedia", [
+            CondicionAcorralado(),
+            AccionCombatir()
+        ])
+        
+        # PRIORIDAD BAJA: Misión de robo
+        robo_baja = Selector("MisionRobo", [
+            # Si tiene cristal, escapar
+            Secuencia("EscapeConCristal", [
+                CondicionTieneCristal(),
+                Selector("EstrategiaEscape", [
+                    Secuencia("EscaparPortal", [
+                        AccionEscaparConCristal(),
+                        AccionSeguirCamino()
+                    ]),
+                    AccionHuir()
+                ])
+            ]),
+            
+            # Si no tiene cristal, robar
+            Secuencia("RobarCristal", [
+                CondicionHayCristales(),
+                Selector("EstrategiaRobo", [
+                    Secuencia("RobarYSeguir", [
+                        AccionRobarCristal(),
+                        AccionSeguirCamino()
+                    ]),
+                    AccionPatrullar()
+                ])
+            ])
+        ])
+        
+        # Comportamiento por defecto
+        patrullar = AccionPatrullar()
+        
+        # Raíz del árbol
+        return Selector("Raiz", [huir_alta, combatir_media, robo_baja, patrullar])
+    
+    def inicializar_astar(self, mapa):
+        """Inicializa A* con el mapa"""
+        ANCHO_C = 800 / self.ancho_mapa
+        ALTO_C = 600 / self.alto_mapa
+        self.astar = AStar(mapa, ANCHO_C, ALTO_C, self.ancho_mapa, self.alto_mapa)
+    
+    def colisiona_con_mapa(self, x, y, mapa_datos):
+        """Verifica si una posición colisiona con el mapa"""
+        ANCHO_C = 800 / self.ancho_mapa
+        ALTO_C = 600 / self.alto_mapa
+        
+        col = int(x // ANCHO_C)
+        fila = int(y // ALTO_C)
+        
+        if fila < 0 or fila >= self.alto_mapa:
+            return True
+        if col < 0 or col >= self.ancho_mapa:
+            return True
+            
+        return mapa_datos[fila][col] == 1
+    
+    def pensar(self, mundo):
+        """Ejecuta el árbol de comportamiento"""
+        if not self.astar:
+            self.inicializar_astar(mundo.mapa)
+        
+        # Ejecutar árbol
+        resultado = self.arbol.ejecutar(self, mundo)
+    
     def mover(self, mapa_datos):
-
-            if self.objetivo_actual:
-             tx, ty = self.objetivo_actual
-            nx, ny = self.x, self.y
-            
-            # Movimiento en X
-            if self.x < tx:
-                nx += self.velocidad
-            elif self.x > tx:
-                nx -= self.velocidad
-            
-            # Movimiento en Y
-            if self.y < ty:
-                ny += self.velocidad
-            elif self.y > ty:
-                ny -= self.velocidad
-
-            # CORRECCIÓN: Calcular columna y fila correctamente
-            # Usamos el mismo sistema de coordenadas que el mapa principal
-            ANCHO_C = 800 / 25  # O pasar esto como parámetro desde el main
-            ALTO_C = 600 / 11
-            
-            col = int(nx // ANCHO_C)
-            fila = int(ny // ALTO_C)
-
-            # Verificar límites del mapa ANTES de acceder
-            if 0 <= fila < len(mapa_datos) and 0 <= col < len(mapa_datos[0]):
-                if mapa_datos[fila][col] == 0:
-                    self.x, self.y = nx, ny
-                # Si es muro (1), no se mueve (se queda en posición actual)
-            else:
-                # Fuera de límites, no mover
-                pass
-
-
+        """El movimiento se maneja en las acciones del árbol"""
+        pass
+    
     def verificar_colision(self, lista_cristales):
-        """
-        Revisa si el enemigo está tocando algún cristal.
-        """
-        for cristal in lista_cristales:
-            # Rectángulos para detectar el choque
-            rect_cristal = pygame.Rect(cristal[0], cristal[1], 20, 20)
-            rect_enemigo = pygame.Rect(self.x - self.radio, self.y - self.radio, self.radio * 2, self.radio * 2)
+        """Revisa si el enemigo está tocando algún cristal"""
+        for i, cristal in enumerate(lista_cristales[:]):
+            dx = cristal[0] - self.x
+            dy = cristal[1] - self.y
+            distancia = math.sqrt(dx*dx + dy*dy)
             
-            if rect_enemigo.colliderect(rect_cristal):
-                lista_cristales.remove(cristal) # ¡Se roba el cristal!
-                self.objetivo_actual = None      # Olvida el objetivo viejo
-                print("¡Cristal robado!")        # Aviso en consola
+            if distancia < self.radio + 10:
+                lista_cristales.pop(i)
+                self.cristal_cargado = True
+                self.objetivo_actual = None
+                print("¡Cristal robado!")
                 return True
         return False
+    
+    def recibir_danio(self, cantidad):
+        """Recibe daño"""
+        self.salud -= cantidad
+        if self.salud < 0:
+            self.salud = 0
+    
+    def dibujar(self, superficie):
+        """Dibuja el cuerpo del saqueador"""
+        # Cuerpo principal
+        pygame.draw.circle(superficie, self.color_actual, (int(self.x), int(self.y)), self.radio)
+        
+        # Ojos
+        pygame.draw.circle(superficie, (255, 255, 255), (int(self.x - 5), int(self.y - 5)), 4)
+        pygame.draw.circle(superficie, (255, 255, 255), (int(self.x + 5), int(self.y - 5)), 4)
+        
+        # Pupilas
+        if self.objetivo_actual:
+            if self.objetivo_actual[0] > self.x:
+                pygame.draw.circle(superficie, (0, 0, 0), (int(self.x - 3), int(self.y - 6)), 2)
+                pygame.draw.circle(superficie, (0, 0, 0), (int(self.x + 7), int(self.y - 6)), 2)
+            else:
+                pygame.draw.circle(superficie, (0, 0, 0), (int(self.x - 7), int(self.y - 6)), 2)
+                pygame.draw.circle(superficie, (0, 0, 0), (int(self.x + 3), int(self.y - 6)), 2)
+        else:
+            pygame.draw.circle(superficie, (0, 0, 0), (int(self.x - 5), int(self.y - 5)), 2)
+            pygame.draw.circle(superficie, (0, 0, 0), (int(self.x + 5), int(self.y - 5)), 2)
+        
+        # Barra de salud
+        ancho_barra = 30
+        alto_barra = 4
+        x_barra = self.x - ancho_barra // 2
+        y_barra = self.y - self.radio - 10
+        
+        pygame.draw.rect(superficie, (100, 100, 100), (x_barra, y_barra, ancho_barra, alto_barra))
+        
+        ancho_salud = (self.salud / 100) * ancho_barra
+        if self.salud > 50:
+            color_salud = (0, 255, 0)
+        elif self.salud > 20:
+            color_salud = (255, 255, 0)
+        else:
+            color_salud = (255, 0, 0)
+        pygame.draw.rect(superficie, color_salud, (x_barra, y_barra, ancho_salud, alto_barra))
+        
+        # Indicador de cristal
+        if self.cristal_cargado:
+            pygame.draw.circle(superficie, (255, 255, 0), (int(self.x), int(self.y - self.radio - 15)), 5)
+        
+        # Indicador de estado (letra)
+        fuente = pygame.font.Font(None, 16)
+        if self.estado == "huyendo":
+            texto = "H"
+        elif self.estado == "combatiendo":
+            texto = "C"
+        elif self.estado == "robando":
+            texto = "R"
+        elif self.estado == "escapando":
+            texto = "E"
+        else:
+            texto = "P"
+        
+        render = fuente.render(texto, True, (255, 255, 255))
+        superficie.blit(render, (self.x - 5, self.y - 30))
