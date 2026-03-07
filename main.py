@@ -96,6 +96,7 @@ def dibujar_mundo(superficie):
                 pygame.draw.rect(superficie, (0, 255, 255), rect, 1)    
    
 # Clase del Dron
+
 class Dron:
     def __init__(self, x, y):
         self.x = x
@@ -106,85 +107,108 @@ class Dron:
         self.boost_activo = False
         self.boost_tiempo = 0
         self.boost_cooldown = 0
-        self.boost_duracion = 1000  # 1 segundo en ms
-        self.boost_espera = 3000    # 3 segundos en ms
+        self.boost_duracion = 1000
+        self.boost_espera = 3000
+        
+        # Cargar imagen del dron
+        self.imagen_original = self.cargar_imagen()
+        self.imagen = self.imagen_original
+        self.rect = self.imagen.get_rect(center=(self.x, self.y)) if self.imagen else None
+        
+        # Animación
+        self.angulo = 0
+        self.sentido_rotacion = 1
+    
+    def cargar_imagen(self):
+        """Carga la imagen del dron"""
+        try:
+            import os
+            ruta = os.path.join("assets", "dron.png")
+            imagen = pygame.image.load(ruta).convert_alpha()
+            return pygame.transform.scale(imagen, (40, 40))
+        except:
+            return None  # Silenciosamente retorna None si no hay imagen
 
     def colision(self, nueva_x, nueva_y, mapa):
-        # Convertimos las coordenadas a la celda correspondiente
-         col = int(nueva_x // ANCHO_C)
-         fila = int(nueva_y // ALTO_C)
- 
-         # Verificamos si estamos dentro de los límites del mapa
-         
-         if 0 <= fila < len(mapa) and 0 <= col < len(mapa[0]):
-            # Si la celda es un muro, return True
+        col = int(nueva_x // ANCHO_C)
+        fila = int(nueva_y // ALTO_C)
+        if 0 <= fila < len(mapa) and 0 <= col < len(mapa[0]):
             return mapa[fila][col] == 1
-         return True  # fuera de límites
-         
+        return True
+
     def mover(self, teclas):
-        # Determinar velocidad actual
         vel = self.velocidad_boost if self.boost_activo else self.velocidad
+        nueva_x, nueva_y = self.x, self.y
 
-        # Calculamos la nueva posición propuesta
-        nueva_x = self.x
-        nueva_y = self.y
+        if teclas[pygame.K_w]: nueva_y -= vel
+        if teclas[pygame.K_s]: nueva_y += vel
+        if teclas[pygame.K_a]: nueva_x -= vel
+        if teclas[pygame.K_d]: nueva_x += vel
 
-        # Movimiento WASD - solo calculamos, no aplicamos aún
-        if teclas[pygame.K_w]:
-            nueva_y -= vel
-        if teclas[pygame.K_s]:
-            nueva_y += vel
-        if teclas[pygame.K_a]:
-            nueva_x -= vel
-        if teclas[pygame.K_d]:
-            nueva_x += vel
-    
-        # Verificar colisión en X por separado
         if not self.colision(nueva_x, self.y, MAPA):
             self.x = nueva_x
-        
-        # Verificar colisión en Y por separado  
         if not self.colision(self.x, nueva_y, MAPA):
             self.y = nueva_y
-    
-        # Limitar a la pantalla
-        ancho_ventana, alto_ventana = pygame.display.get_surface().get_size()
-        self.x = max(self.radio, min(ancho_ventana - self.radio, self.x))
-        self.y = max(self.radio, min(alto_ventana - self.radio, self.y))
+
+        # Límites
+        ancho, alto = pygame.display.get_surface().get_size()
+        self.x = max(self.radio, min(ancho - self.radio, self.x))
+        self.y = max(self.radio, min(alto - self.radio, self.y))
+        
+        if self.rect:
+            self.rect.center = (self.x, self.y)
+        
+        # Animación
+        if any([teclas[pygame.K_w], teclas[pygame.K_s], 
+                teclas[pygame.K_a], teclas[pygame.K_d]]):
+            self.angulo += 5 * self.sentido_rotacion
+            if abs(self.angulo) > 10:
+                self.sentido_rotacion *= -1
+        else:
+            if self.angulo > 0:
+                self.angulo = max(0, self.angulo - 2)
+            elif self.angulo < 0:
+                self.angulo = min(0, self.angulo + 2)
 
     def activar_boost(self):
-             tiempo_actual = pygame.time.get_ticks()
-                
-                # Solo activar si no está en cooldown
-             if not self.boost_activo and tiempo_actual >= self.boost_cooldown:
-                    self.boost_activo = True
-                    self.boost_tiempo = tiempo_actual + self.boost_duracion
-                    self.boost_cooldown = tiempo_actual + self.boost_duracion + self.boost_espera
-            
+        tiempo = pygame.time.get_ticks()
+        if not self.boost_activo and tiempo >= self.boost_cooldown:
+            self.boost_activo = True
+            self.boost_tiempo = tiempo + self.boost_duracion
+            self.boost_cooldown = tiempo + self.boost_duracion + self.boost_espera
+
     def actualizar_boost(self):
-        tiempo_actual = pygame.time.get_ticks()
-        
-        # Desactivar boost cuando se acaba el tiempo
-        if self.boost_activo and tiempo_actual >= self.boost_tiempo:
+        if self.boost_activo and pygame.time.get_ticks() >= self.boost_tiempo:
             self.boost_activo = False
-    
+
     def dibujar(self, surface):
-        # Color cambia cuando boost está activo
-        color = VERDE if self.boost_activo else AZUL
-        
-        # Cuerpo del dron
-        pygame.draw.circle(surface, color, (int(self.x), int(self.y)), self.radio)
-        
-        # Indicador de dirección (pequeño círculo blanco)
-        pygame.draw.circle(surface, BLANCO, (int(self.x), int(self.y - 5)), 5)
-    
+        # Efecto boost
+        if self.boost_activo:
+            for i in range(3):
+                radio = self.radio + i * 8
+                pygame.draw.circle(surface, (0, 255, 100), 
+                                 (int(self.x), int(self.y)), radio, 2)
+
+        # Dibujar imagen o fallback
+        if self.imagen:
+            img_rotada = pygame.transform.rotate(self.imagen_original, self.angulo)
+            rect = img_rotada.get_rect(center=(self.x, self.y))
+            
+            if self.boost_activo:
+                img_boost = img_rotada.copy()
+                img_boost.fill((100, 255, 100, 50), special_flags=pygame.BLEND_RGBA_ADD)
+                surface.blit(img_boost, rect)
+            else:
+                surface.blit(img_rotada, rect)
+        else:
+            # Fallback: círculos
+            color = VERDE if self.boost_activo else AZUL
+            pygame.draw.circle(surface, color, (int(self.x), int(self.y)), self.radio)
+            pygame.draw.circle(surface, BLANCO, (int(self.x), int(self.y - 5)), 5)
+
     def get_rect(self):
-        return pygame.Rect(
-            self.x - self.radio,
-            self.y - self.radio,
-            self.radio * 2,
-            self.radio * 2
-        )
+        return pygame.Rect(self.x - self.radio, self.y - self.radio, 
+                          self.radio * 2, self.radio * 2)
 
 # Crear dron en el centro
 dron = Dron(ANCHO_C * 1.5, ALTO_C * 1.5)
